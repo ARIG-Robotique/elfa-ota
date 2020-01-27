@@ -1,0 +1,26 @@
+{
+    "Principal": [
+        {
+            "id": 1,
+            "name": "Ascenseur phare",
+            "currentSpeed": 0,
+            "currentPosition": 1500,
+            "group": {
+                "order": 1,
+                "name": "Principal"
+            },
+            "minPosition": 500,
+            "maxPosition": 2500,
+            "positions": [
+                {
+                    "name": "Haut",
+                    "value": 2000
+                },
+                {
+                    "name": "Bas",
+                    "value": 1000
+                }
+            ]
+        }
+    ]
+}

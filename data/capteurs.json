@@ -1,0 +1,10 @@
+{
+  "numerique": {
+    "AU": false,
+    "Enable robot": false
+  },
+  "analogique": {},
+  "text": {
+    "EQUIPE": "BLEU"
+  }
+}

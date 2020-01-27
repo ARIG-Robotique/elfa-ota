@@ -23,10 +23,13 @@ void wifiReset();
 // HTTP
 void httpError();
 void httpRoot();
-void httpGetIO();
+void httpGetRobot();
+void httpGetCapteurs();
 void httpSetIO();
 void httpGetServos();
 void httpSetServos();
+void httpResetESP();
+void httpRestartESP();
 
 // Déclaration des objets
 ESP8266WebServer server(80);
@@ -80,11 +83,16 @@ void setup() {
     ElegantOTA.begin(&server); 
 
     // Routing
+    server.onNotFound(httpError);
     server.on("/", httpRoot);
-    server.on("/io", HTTP_GET, httpGetIO);
+    server.on("/robot", httpGetRobot);
+    server.on("/capteurs", httpGetCapteurs);
     server.on("/io", HTTP_POST, httpSetIO);
-    server.on("/servos", HTTP_GET, httpGetServos);
+    server.on("/servos", httpGetServos);
     server.on("/servos", HTTP_POST, httpSetServos);
+
+    server.on("/reset", httpResetESP);
+    server.on("/restart", httpRestartESP);
 
     // Start WebServer
     server.begin();
@@ -154,16 +162,26 @@ void httpRoot() {
     f.close();
 }
 
-void httpGetIO() {
-    debugI("Liste des IOs");
-    server.send(204, "application/json", "{}");
+void httpGetRobot() {
+    debugI("Info robot");
+    File f = SPIFFS.open("/robot.json", "r");
+    server.send(200, "application/json", f.readString());
+    f.close();
+}
+
+void httpGetCapteurs() {
+    debugI("Liste des Capteurs");
+    // TODO : Call STM32 to get IO values
+    File f = SPIFFS.open("/capteurs.json", "r");
+    server.send(200, "application/json", f.readString());
+    f.close();
 }
 
 void httpSetIO() {
     StaticJsonDocument<256> query;
     StaticJsonDocument<256> response;
     String jsonResponse;
-    int httpCode;
+    int httpCode = 204;
 
     debugI("Changement d'une IO");
 
@@ -179,7 +197,8 @@ void httpSetIO() {
 
         if (io == "RESET_STM32") {
             digitalWrite(GPIO_RESET_STM32, value);
-            httpCode = 204;
+        } else if (io == "BOOT0_STM32") {
+            digitalWrite(GPIO_BOOT0_STM32, value);
         } else {
             response["error"] = "IO inconnu";
             httpCode = 404;
@@ -191,9 +210,31 @@ void httpSetIO() {
 }
 
 void httpGetServos() {
+    debugI("Liste des Servos");
+    String uri = server.uri();
 
+    if (uri == "/servos") {
+        File f = SPIFFS.open("/servosConfig.json", "r");
+        server.send(200, "application/json", f.readString());
+        f.close();
+    } else {
+        // Lecture d'un servos en particulier
+        server.send(200, "application/json", {});
+    }
 }
 
 void httpSetServos() {
+    server.send(501, "application/json", "{\"error\":\"Non implementé\"}");
+}
 
+void httpResetESP() {
+    server.send(204, "application/json", "{}");
+    delay(2000);
+    ESP.reset();
+}
+
+void httpRestartESP() {
+    server.send(204, "application/json", "{}");
+    delay(2000);
+    ESP.restart();
 }
