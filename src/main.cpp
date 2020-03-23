@@ -116,7 +116,9 @@ void loop() {
         String inputJson = Serial.readString();
         if (inputJson == "GET_IP") {
             Serial.println(WiFi.localIP().toString());
-        }        
+        } else {
+            debugI("%s", inputJson.c_str());
+        }    
     }
 }
 
